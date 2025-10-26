@@ -1,0 +1,247 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║           COMANDOS WSL - COPIE E COLE                           ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════
+PARTE 1: INSTALAR WSL (PowerShell como ADMINISTRADOR)
+═══════════════════════════════════════════════════════════════════
+
+wsl --install
+
+# Depois reinicie o computador
+
+
+═══════════════════════════════════════════════════════════════════
+PARTE 2: CONFIGURAR UBUNTU (Após reiniciar, abra WSL/Ubuntu)
+═══════════════════════════════════════════════════════════════════
+
+# Atualizar sistema
+sudo apt update && sudo apt upgrade -y
+
+# Instalar GCC e OpenMP
+sudo apt install build-essential libomp-dev -y
+
+# Verificar
+gcc --version
+
+
+═══════════════════════════════════════════════════════════════════
+PARTE 3: INSTALAR PYTHON (Opcional - para gráficos)
+═══════════════════════════════════════════════════════════════════
+
+# Instalar Python
+sudo apt install python3 python3-pip -y
+
+# Instalar bibliotecas
+pip3 install matplotlib numpy
+
+
+═══════════════════════════════════════════════════════════════════
+PARTE 4: COMPILAR E EXECUTAR
+═══════════════════════════════════════════════════════════════════
+
+# Ir para o projeto
+cd /mnt/c/Users/amari/Documents/projetos/Faculdade/prog-par
+
+# Compilar
+gcc -fopenmp -O3 -march=native -o ompmultmat ompmultmat.c
+
+# Configurar threads (use número de cores do seu PC)
+export OMP_NUM_THREADS=8
+
+# Teste rápido
+echo 512 | ./ompmultmat
+
+
+═══════════════════════════════════════════════════════════════════
+PARTE 5: TESTES COMPLETOS
+═══════════════════════════════════════════════════════════════════
+
+# Teste com diferentes tamanhos
+echo 512 | ./ompmultmat
+echo 1024 | ./ompmultmat
+echo 2048 | ./ompmultmat
+
+# Ou executar benchmark completo
+chmod +x run_benchmarks.sh
+./run_benchmarks.sh
+
+# Ver resultados
+cat benchmark_results.txt
+
+
+═══════════════════════════════════════════════════════════════════
+PARTE 6: GERAR GRÁFICOS
+═══════════════════════════════════════════════════════════════════
+
+# Gerar gráficos
+python3 plot_results.py
+
+# Abrir pasta no Windows Explorer
+explorer.exe .
+
+# Ou copiar para Desktop
+cp *.png benchmark_results.txt /mnt/c/Users/amari/Desktop/
+
+
+═══════════════════════════════════════════════════════════════════
+COMANDOS RÁPIDOS - TUDO DE UMA VEZ
+═══════════════════════════════════════════════════════════════════
+
+# COPIE E COLE TUDO ISSO NO WSL (primeira vez):
+
+sudo apt update && sudo apt upgrade -y && \
+sudo apt install build-essential libomp-dev python3 python3-pip -y && \
+pip3 install matplotlib numpy && \
+cd /mnt/c/Users/amari/Documents/projetos/Faculdade/prog-par && \
+gcc -fopenmp -O3 -march=native -o ompmultmat ompmultmat.c && \
+export OMP_NUM_THREADS=$(nproc) && \
+echo "✅ Tudo instalado!" && \
+echo "" && \
+echo "Teste rápido:" && \
+echo 512 | ./ompmultmat
+
+
+═══════════════════════════════════════════════════════════════════
+DEPOIS DE INSTALADO (próximas vezes)
+═══════════════════════════════════════════════════════════════════
+
+# Abrir WSL
+wsl
+
+# Ir para projeto e executar
+cd /mnt/c/Users/amari/Documents/projetos/Faculdade/prog-par && \
+export OMP_NUM_THREADS=8 && \
+echo 1024 | ./ompmultmat
+
+
+═══════════════════════════════════════════════════════════════════
+INFORMAÇÕES DA MÁQUINA (para o relatório)
+═══════════════════════════════════════════════════════════════════
+
+# Copie a saída deste comando para o relatório:
+
+echo "========================================="
+echo "INFORMAÇÕES DO SISTEMA"
+echo "========================================="
+echo ""
+echo "Processador: $(lscpu | grep 'Model name' | cut -d: -f2 | xargs)"
+echo "Cores: $(nproc)"
+echo "Threads por core: $(lscpu | grep 'Thread(s) per core' | awk '{print $4}')"
+echo "Cache L3: $(lscpu | grep 'L3' | awk '{print $3}')"
+echo "Memória: $(free -h | grep Mem | awk '{print $2}')"
+echo "Sistema: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '"')"
+echo "Compilador: $(gcc --version | head -1)"
+echo ""
+echo "========================================="
+
+
+═══════════════════════════════════════════════════════════════════
+TESTAR COM DIFERENTES THREADS
+═══════════════════════════════════════════════════════════════════
+
+# Loop para testar 1, 2, 4, 8 threads com matriz 1024x1024
+
+for threads in 1 2 4 8; do
+    echo "==================================="
+    echo "Testando com $threads threads"
+    echo "==================================="
+    export OMP_NUM_THREADS=$threads
+    echo 1024 | ./ompmultmat
+    echo ""
+done
+
+
+═══════════════════════════════════════════════════════════════════
+USAR MAKEFILE (mais fácil)
+═══════════════════════════════════════════════════════════════════
+
+make              # Compilar
+make test         # Teste rápido (512x512)
+make test-medium  # Teste médio (1024x1024)
+make test-large   # Teste grande (2048x2048)
+make benchmark    # Benchmark completo
+make clean        # Limpar
+
+
+═══════════════════════════════════════════════════════════════════
+DICAS ÚTEIS
+═══════════════════════════════════════════════════════════════════
+
+# Ver quantos cores você tem
+nproc
+
+# Monitorar uso de CPU (instale htop primeiro)
+sudo apt install htop
+htop
+
+# Ver arquivos no Windows Explorer
+explorer.exe .
+
+# Editar arquivo
+nano ompmultmat.c
+
+# Copiar resultados para Desktop
+cp benchmark_results.txt *.png /mnt/c/Users/amari/Desktop/
+
+
+═══════════════════════════════════════════════════════════════════
+SOLUÇÃO DE PROBLEMAS
+═══════════════════════════════════════════════════════════════════
+
+# Permissão negada ao executar
+chmod +x ompmultmat
+chmod +x run_benchmarks.sh
+
+# Recompilar
+rm ompmultmat
+gcc -fopenmp -O3 -march=native -o ompmultmat ompmultmat.c
+
+# WSL lento? Copie projeto para dentro do WSL:
+cp -r /mnt/c/Users/amari/Documents/projetos/Faculdade/prog-par ~/
+cd ~/prog-par
+gcc -fopenmp -O3 -march=native -o ompmultmat ompmultmat.c
+
+
+═══════════════════════════════════════════════════════════════════
+CHECKLIST
+═══════════════════════════════════════════════════════════════════
+
+[ ] WSL instalado (wsl --install)
+[ ] Ubuntu configurado (usuário e senha)
+[ ] GCC instalado (sudo apt install build-essential)
+[ ] Projeto acessível (cd /mnt/c/Users/...)
+[ ] Compilado (gcc -fopenmp ...)
+[ ] Threads configuradas (export OMP_NUM_THREADS=8)
+[ ] Teste funcionando (echo 512 | ./ompmultmat)
+[ ] Benchmark executado (./run_benchmarks.sh)
+[ ] Gráficos gerados (python3 plot_results.py)
+[ ] Informações coletadas (lscpu, free -h)
+[ ] Relatório preenchido
+[ ] PRONTO PARA ENTREGAR! 🎉
+
+
+═══════════════════════════════════════════════════════════════════
+ATALHO - CRIAR ALIAS (facilita sua vida)
+═══════════════════════════════════════════════════════════════════
+
+# Adicionar ao ~/.bashrc
+echo 'alias pp="cd /mnt/c/Users/amari/Documents/projetos/Faculdade/prog-par"' >> ~/.bashrc
+source ~/.bashrc
+
+# Agora você pode usar apenas:
+pp
+./ompmultmat
+
+
+═══════════════════════════════════════════════════════════════════
+
+📖 Para instruções detalhadas, veja: GUIA_WSL.md
+🚀 Para guia rápido geral, veja: QUICK_START.md
+📋 Para ver status, veja: STATUS_INSTALACAO.md
+
+═══════════════════════════════════════════════════════════════════
+
+
